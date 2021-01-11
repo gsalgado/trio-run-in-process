@@ -11,6 +11,23 @@ from .state import State
 from .typing import TReturn
 
 
+import secrets
+
+
+class Foo:
+    def __init__(self, arg):
+        self.arg = arg
+
+    async def do_run(self, d):
+        return None
+
+
+f = Foo(None)
+
+
+p = pickle_value((f.do_run, (secrets.token_bytes(1024 ** 2),)))
+
+
 class Process(ProcessAPI[TReturn]):
     _pid: Optional[int] = None
     _returncode: Optional[int] = None
@@ -25,7 +42,8 @@ class Process(ProcessAPI[TReturn]):
     ) -> None:
         self._async_fn = async_fn
         self._args = args
-        self.sub_proc_payload = pickle_value((self._async_fn, self._args))
+        # self.sub_proc_payload = pickle_value((self._async_fn, self._args))
+        self.sub_proc_payload = p
 
         self._has_pid = trio.Event()
         self._has_returncode = trio.Event()
