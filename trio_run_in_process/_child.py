@@ -77,11 +77,28 @@ async def _do_async_fn(
         return result
 
 
+import secrets
+data = secrets.token_bytes(1024 ** 2)
+
+
+class Foo:
+    def __init__(self, arg):
+        self.arg = arg
+
+    async def do_run(self, d):
+        return None
+
+
+f = Foo(None)
+
+
 def _run_process(
     parent_pid: int, from_parent: io.BytesIO, to_parent: io.BytesIO
 ) -> None:
     update_state(to_parent, State.WAIT_EXEC_DATA)
-    async_fn, args = sync_receive_pickled_value(from_parent)
+    # async_fn, args = sync_receive_pickled_value(from_parent)
+    async_fn = f.do_run
+    args = (data,)
 
     try:
         try:
@@ -104,14 +121,12 @@ def _run_process(
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    with os.fdopen(args.fd_write, "wb", closefd=True) as to_parent, os.fdopen(
-        args.fd_read, "rb", closefd=True
-    ) as from_parent:
+    with os.fdopen(args.fd_write, "wb", closefd=True) as to_parent:
         while True:
             # When WorkerProcess exits it will close the pipe passed as fd_read here, sending us
             # an EOF and causing a ConnectionError to bubble up here. That's how we know when to
             # terminate.
             try:
-                _run_process(args.parent_pid, from_parent, to_parent)
+                _run_process(args.parent_pid, None, to_parent)
             except ConnectionError:
                 break

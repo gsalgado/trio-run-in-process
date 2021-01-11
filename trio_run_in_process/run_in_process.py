@@ -158,7 +158,7 @@ class WorkerProcess(WorkerProcessAPI):
             # `WAIT_EXEC_DATA` state to ensure that the child process doesn't have
             # to wait for that data due to the round trip times between processes.
             logger.debug("Writing execution data for %s over stdin", proc)
-            await self._to_child.send_all(proc.sub_proc_payload)
+            # await self._to_child.send_all(proc.sub_proc_payload)
 
             startup_timeout = int(
                 os.getenv(
@@ -271,8 +271,8 @@ async def open_worker_process() -> AsyncIterator[WorkerProcessAPI]:
     )
     try:
         async with trio_proc:
-            async with FdStream(parent_r) as from_child, FdStream(parent_w) as to_child:
-                worker = WorkerProcess(trio_proc, from_child, to_child)
+            async with FdStream(parent_r) as from_child:
+                worker = WorkerProcess(trio_proc, from_child, None)
                 yield worker
     finally:
         worker._dead = True

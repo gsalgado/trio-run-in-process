@@ -25,7 +25,8 @@ class Process(ProcessAPI[TReturn]):
     ) -> None:
         self._async_fn = async_fn
         self._args = args
-        self.sub_proc_payload = pickle_value((self._async_fn, self._args))
+        # self.sub_proc_payload = pickle_value((self._async_fn, self._args))
+        self.sub_proc_payload = b''
 
         self._has_pid = trio.Event()
         self._has_returncode = trio.Event()
